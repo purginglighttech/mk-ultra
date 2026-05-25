@@ -1,0 +1,1216 @@
+MK-Ultra Language Specification v0.1.0
+
+Document Information
+
+Property Value
+Language Name MK-Ultra
+Compiled Sub-language Maia
+Interpreted Sub-language Koda
+Specification Version 0.1.0
+Language Version 0.1.0
+Status Pre-alpha
+Release Date 2026-05-24
+Copyright © 2026 Purging Light Technologies
+License MIT
+Documentation Format GitHub Markdown
+Configuration Format TOML Only (No YAML, No JSON)
+
+---
+
+Part 1: Introduction
+
+1.1 Overview
+
+MK-Ultra is a dual-nature programming language ecosystem consisting of two integrated languages:
+
+Language Type Purpose
+Maia Compiled systems language OS kernels, drivers, embedded systems, performance-critical code
+Koda Interpreted scripting language Embedded scripting, standalone shell, build automation, web development
+
+1.2 Design Principles
+
+```toml
+[design_principles]
+safety_first = true
+no_garbage_collection = true
+zero_cost_abstractions = true
+pascal_syntax = true
+no_macros = true
+toml_configuration = true
+markdown_documentation = true
+self_hosting = true
+no_llvm = true
+```
+
+1.3 Language Relationship
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           MK-Ultra                                       │
+├─────────────────────────────────┬───────────────────────────────────────┤
+│            Maia                  │                Koda                   │
+│    (Compiled Systems Lang)       │      (Interpreted Scripting Lang)     │
+├─────────────────────────────────┼───────────────────────────────────────┤
+│ • No GC                         │ • Embedded (Lua-style)                 │
+│ • Compile-time RC               │ • Standalone shell (Bash-style)        │
+│ • Borrow checker                │ • Async/await                          │
+│ • Reference capabilities        │ • Native templates                     │
+│ • Explicit allocators           │ • Built-in VCS                         │
+│ • Inline assembly               │ • Web framework (first-class)          │
+│ • 4 backends (x86/ARM/RV/WASM)  │ • FFI via Maia                         │
+│ • FFI to 7 languages            │ • Runs on Maia VM                      │
+│ • Self-hosted                   │                                        │
+└─────────────────────────────────┴───────────────────────────────────────┘
+```
+
+---
+
+Part 2: Lexical Structure
+
+2.1 Character Set
+
+MK-Ultra uses the Unicode character set. Source files are UTF-8 encoded.
+
+2.2 Tokens
+
+Tokens are classified as:
+
+· Identifiers
+· Keywords
+· Literals
+· Operators
+· Delimiters
+· Comments
+
+2.3 Keywords
+
+```toml
+[keywords]
+# Maia keywords
+module = "module"
+use = "use"
+export = "export"
+var = "var"
+const = "const"
+function = "function"
+procedure = "procedure"
+type = "type"
+struct = "struct"
+enum = "enum"
+begin = "begin"
+end = "end"
+if = "if"
+then = "then"
+elsif = "elsif"
+else = "else"
+for = "for"
+while = "while"
+do = "do"
+loop = "loop"
+break = "break"
+continue = "continue"
+return = "return"
+match = "match"
+as = "as"
+null = "null"
+true = "true"
+false = "false"
+
+# Ownership qualifiers
+own = "own"
+ref = "ref"
+mut = "mut"
+rc = "rc"
+weak = "weak"
+
+# Reference capabilities
+iso = "iso"
+trn = "trn"
+val = "val"
+box = "box"
+tag = "tag"
+
+# Concurrency
+actor = "actor"
+behavior = "behavior"
+spawn = "spawn"
+await = "await"
+async = "async"
+
+# Safety
+defer = "defer"
+unsafe = "unsafe"
+safe = "safe"
+
+# Koda keywords
+import = "import"
+from = "from"
+```
+
+2.4 Identifiers
+
+Identifiers start with a letter or underscore, followed by letters, digits, or underscores.
+
+```pascal
+valid_identifier
+_validIdentifier
+identifier123
+camelCase
+PascalCase
+_snake_case
+```
+
+2.5 Literals
+
+Integer Literals
+
+```pascal
+42          /* decimal */
+0xFF        /* hexadecimal */
+0o755       /* octal */
+0b1010      /* binary */
+1_000_000   /* with underscores */
+```
+
+Floating-Point Literals
+
+```pascal
+3.14159
+0.001
+1e-10
+1.5e3
+```
+
+String Literals
+
+```pascal
+"Hello, World!"
+"Escaped \"quote\""
+"Multiline\nstring"
+
+"""
+Multiline
+string
+with formatting
+"""
+```
+
+Boolean Literals
+
+```pascal
+true
+false
+```
+
+Null Literal
+
+```pascal
+null
+```
+
+2.6 Comments
+
+Regular Comments
+
+Regular comments use /* */ syntax and can be nested.
+
+```pascal
+/* This is a comment */
+
+/* This comment
+   spans multiple
+   lines */
+
+/* Comments can /* nest */ safely */
+```
+
+Documentation Comments
+
+Documentation comments use /// syntax for single-line and block documentation.
+
+```pascal
+/// This is a documentation comment
+function add(a: int32, b: int32): int32
+
+///
+/// This is a block documentation comment
+/// that spans multiple lines
+/// 
+/// @param a The first number
+/// @param b The second number
+/// @return The sum of a and b
+///
+function subtract(a: int32, b: int32): int32
+```
+
+Comment Rules Summary
+
+Type Syntax Nesting Purpose
+Regular comment /* ... */ Yes Implementation notes, TODOs, disabled code
+Documentation comment /// ... No API documentation
+Block documentation ///\n/// ...\n/// No Multi-line API documentation
+
+2.7 Operators
+
+Type Operators
+Arithmetic +, -, *, /, %, // (integer division)
+Comparison ==, !=, <, >, <=, >=
+Logical and, or, not
+Bitwise &, |, ^, <<, >>, ~
+Assignment :=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=
+Pointer & (address-of), ^ (dereference)
+Range ..
+Pipeline | (Koda only)
+
+2.8 Delimiters
+
+```pascal
+( )   [ ]   { }   ,   ;   .   :   =   ->
+```
+
+---
+
+Part 3: Data Types
+
+3.1 Primitive Types
+
+Type Size (bits) Range
+int8 8 -128 to 127
+int16 16 -32,768 to 32,767
+int32 32 -2,147,483,648 to 2,147,483,647
+int64 64 -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
+uint8 8 0 to 255
+uint16 16 0 to 65,535
+uint32 32 0 to 4,294,967,295
+uint64 64 0 to 18,446,744,073,709,551,615
+f32 32 IEEE 754 single precision
+f64 64 IEEE 754 double precision
+bool 8 true or false
+string - UTF-8 encoded text
+usize architecture Pointer-sized unsigned integer
+isize architecture Pointer-sized signed integer
+
+3.2 Composite Types
+
+Arrays (Fixed Size)
+
+```pascal
+var arr: [5]int32 = [1, 2, 3, 4, 5]
+var matrix: [3][3]f64
+```
+
+Slices (Dynamic View)
+
+```pascal
+var slice: []int32 = arr[0..3]
+```
+
+Dynamic Arrays
+
+```pascal
+var dyn: array(int32) = array(int32).create()
+dyn.append(42)
+```
+
+Structs
+
+```pascal
+type Point = struct {
+    x: int32,
+    y: int32,
+}
+
+var p := Point { .x = 10, .y = 20 }
+```
+
+Enums
+
+```pascal
+type Color = enum {
+    Red,
+    Green,
+    Blue,
+}
+
+type Result = enum {
+    Ok = 200,
+    NotFound = 404,
+    Error = 500,
+}
+```
+
+3.3 Ownership Qualifiers
+
+Qualifier Meaning
+own Unique ownership, no aliasing
+ref Immutable borrow
+mut Mutable borrow
+rc Reference counted (shared ownership)
+weak Weak reference (doesn't affect RC count)
+
+3.4 Reference Capabilities (Pony-style)
+
+Capability Mutable Shareable Aliased Sendable
+iso ✅ ❌ ❌ ✅
+trn ✅ ❌ ✅ ❌
+ref ✅ ✅ ✅ ❌
+val ❌ ✅ ✅ ✅
+box ❌ ✅ ✅ ✅
+tag ❌ ✅ ✅ ✅
+
+3.5 Option Type (Null Safety)
+
+```pascal
+var maybe: ?int32 = null
+
+/* Safe unwrap */
+if maybe |value| then
+    writeln("Value: ", value)
+end
+
+var val := maybe ?? 0  /* Default to 0 if null */
+```
+
+---
+
+Part 4: Variables and Constants
+
+4.1 Variable Declaration
+
+```pascal
+/* Explicit type */
+var x: int32 = 42
+
+/* Type inference */
+var y := 42
+
+/* Multiple variables */
+var a, b, c: int32 = 1, 2, 3
+
+/* With ownership */
+var unique: own string := "unique"
+var shared: rc string := "shared"
+```
+
+4.2 Constants
+
+```pascal
+const PI: f64 = 3.14159265359
+const MAX_SIZE: usize = 1024
+const NAME := "MK-Ultra"
+```
+
+4.3 Deferred Initialization
+
+```pascal
+var x: int32
+x = 42
+```
+
+---
+
+Part 5: Expressions
+
+5.1 Primary Expressions
+
+```pascal
+literal
+identifier
+( expression )
+```
+
+5.2 Arithmetic Expressions
+
+```pascal
+a + b
+a - b
+a * b
+a / b
+a % b
+a // b  /* integer division */
+```
+
+5.3 Comparison Expressions
+
+```pascal
+a == b
+a != b
+a < b
+a > b
+a <= b
+a >= b
+```
+
+5.4 Logical Expressions
+
+```pascal
+a and b
+a or b
+not a
+```
+
+5.5 Bitwise Expressions
+
+```pascal
+a & b   /* AND */
+a | b   /* OR */
+a ^ b   /* XOR */
+~a      /* NOT */
+a << b  /* left shift */
+a >> b  /* right shift */
+```
+
+5.6 Type Conversion
+
+```pascal
+value as target_type
+```
+
+5.7 Range Expression
+
+```pascal
+0..9        /* inclusive range */
+0..<10      /* exclusive end */
+```
+
+---
+
+Part 6: Statements
+
+6.1 Block Statement
+
+```pascal
+begin
+    statement1
+    statement2
+end
+```
+
+6.2 Assignment
+
+```pascal
+variable := expression
+variable += expression
+variable -= expression
+variable *= expression
+variable /= expression
+```
+
+6.3 If Statement
+
+```pascal
+if condition then
+    statements
+elsif condition then
+    statements
+else
+    statements
+end
+```
+
+6.4 While Loop
+
+```pascal
+while condition do
+    statements
+end
+```
+
+6.5 For Loop
+
+```pascal
+/* Range loop */
+for i in 0..9 do
+    statements
+end
+
+/* Collection loop */
+for item in collection do
+    statements
+end
+
+/* Index-value loop */
+for i, item in collection do
+    statements
+end
+```
+
+6.6 Loop with Break/Continue
+
+```pascal
+loop
+    if condition then break end
+    if skip then continue end
+end
+```
+
+6.7 Match Statement
+
+```pascal
+match value {
+    0 => writeln("zero"),
+    1 => writeln("one"),
+    2..9 => writeln("digit"),
+    else => writeln("other")
+}
+```
+
+6.8 Defer Statement
+
+```pascal
+var file := File.open("data.txt")
+defer file.close()
+```
+
+6.9 Return Statement
+
+```pascal
+return
+return expression
+```
+
+---
+
+Part 7: Functions and Procedures
+
+7.1 Function Declaration
+
+```pascal
+/// Adds two numbers together
+/// @param a The first number
+/// @param b The second number
+/// @return The sum of a and b
+function add(a: int32, b: int32): int32
+begin
+    return a + b
+end
+```
+
+7.2 Procedure Declaration
+
+```pascal
+/// Greets a user by name
+/// @param name The name to greet
+procedure greet(name: string)
+begin
+    writeln("Hello, ", name)
+end
+```
+
+7.3 Generic Functions
+
+```pascal
+function identity<T>(value: T): T
+begin
+    return value
+end
+```
+
+7.4 Comptime Functions
+
+```pascal
+@comptime
+function factorial(n: int32): int32
+begin
+    var result: int32 := 1
+    for i in 2..n do
+        result *= i
+    end
+    return result
+end
+
+const FACT_10 := factorial(10)  /* Computed at compile time */
+```
+
+7.5 Async Functions (Maia)
+
+```pascal
+async function fetch_data(url: string): string
+begin
+    var response := await http.get(url)
+    return response.body
+end
+```
+
+---
+
+Part 8: Modules and Imports
+
+8.1 Module Declaration
+
+```pascal
+/* math.maia */
+module Math;
+
+export function add(a, b: int32): int32
+begin
+    return a + b
+end
+
+var _internal: int32  /* Not exported */
+```
+
+8.2 Import Statement
+
+```pascal
+use Math
+use Math.{add, PI}
+use Math as M
+use Math.*
+```
+
+8.3 Export Levels
+
+```pascal
+export var public: int32
+export(module) var module_api: int32
+package var package_api: int32
+var _private: int32
+const _FILE_ONLY: int32 = 42
+```
+
+---
+
+Part 9: Memory Management
+
+9.1 Ownership System
+
+```pascal
+var a: own string := "hello"
+var b: ref string := &a   /* borrow */
+var c: mut string := &mut a  /* mutable borrow */
+var d: own string := consume a  /* move */
+/* a is now invalid */
+```
+
+9.2 Compile-Time Reference Counting
+
+```pascal
+var a: rc string := "shared"   /* refcount = 1 */
+var b: rc string := a           /* refcount = 2 */
+var c: rc string := a           /* refcount = 3 */
+var weak: weak string := a      /* weak reference */
+```
+
+9.3 Explicit Allocators
+
+```pascal
+var arena := Arena.init(alloc)
+var data := arena.alloc(u8, 1024)
+defer arena.deinit()
+```
+
+9.4 Defer Statement
+
+```pascal
+var file := File.open("data.txt")
+defer file.close()
+```
+
+---
+
+Part 10: Concurrency
+
+10.1 Actors
+
+```pascal
+actor Counter {
+    var _count: iso int32 := 0
+    
+    behavior increment()
+    begin
+        _count += 1
+    end
+    
+    function get(): val int32
+    begin
+        return _count as val
+    end
+}
+```
+
+10.2 Channels
+
+```pascal
+var ch: channel(int32) := channel.create(10)
+ch.send(42)
+var value := ch.recv()
+```
+
+10.3 Spawning
+
+```pascal
+var handle := spawn worker()
+wait(handle)
+```
+
+10.4 Async/Await (Maia)
+
+```pascal
+async function fetch(): string
+begin
+    return await http.get(url)
+end
+
+var data := await fetch()
+```
+
+---
+
+Part 11: Safety Features
+
+11.1 Safety Levels
+
+Level Bounds Overflow Use-After-Free Leak Detection Overhead
+full ✅ ✅ ✅ ✅ +20-30%
+release ✅ ✅ ❌ ❌ +5-10%
+os ✅ ❌ ❌ ❌ +2-5%
+none ❌ ❌ ❌ ❌ 0%
+
+11.2 Safe/Unsafe Blocks
+
+```pascal
+safe do
+    arr[i] := 42  /* Bounds checked */
+end
+
+unsafe do
+    arr[i] := 42  /* No checks */
+    asm { mov eax, 42 }
+end
+```
+
+11.3 Option Type (Null Safety)
+
+```pascal
+var maybe: ?int32 := null
+
+if maybe |value| then
+    writeln(value)
+end
+```
+
+---
+
+Part 12: FFI and Interoperability
+
+MK-Ultra provides built-in FFI to 7 languages with zero-copy where possible.
+
+Language Keyword Overhead
+C extern "C" Zero
+C++ extern "C++" Minimal
+Rust extern "Rust" Minimal
+Zig extern "Zig" Zero
+Pony extern "Pony" Minimal
+Java extern "Java" Moderate (JNI)
+Python extern "Python" Moderate
+
+```pascal
+/* Example: Calling Python from Maia */
+@link("python3")
+extern "Python" function PyImport_ImportModule(name: *u8): *PyObject
+
+var numpy := PyImport_ImportModule("numpy")
+```
+
+---
+
+Part 13: Platform Support
+
+13.1 Tier 1 Platforms
+
+Platform Minimum Version Architectures
+Linux Kernel 6.12 x86_64, ARM64, RISC-V
+Windows Windows 10 (1607+) x86_64, ARM64
+macOS 11 (Big Sur) x86_64, ARM64
+FreeBSD 13.0 x86_64, ARM64, RISC-V
+OpenBSD 7.0 x86_64, ARM64
+NetBSD 10.0 x86_64, ARM64, RISC-V
+DragonFlyBSD 6.0 x86_64
+
+13.2 Backends
+
+Architecture Status Output Formats
+x86_64 ✅ Stable ELF, Mach-O, PE
+ARM64 ✅ Stable ELF, Mach-O, PE
+RISC-V ✅ Stable ELF
+WebAssembly ✅ Stable WASM
+
+No LLVM dependency — MK-Ultra has its own native code generation.
+
+13.3 Platform Detection
+
+```pascal
+@comptime
+function current_platform(): Platform
+begin
+    if @target_os() == "linux" then
+        return .Linux
+    elsif @target_os() == "windows" then
+        return .Windows
+    elsif @target_os() == "macos" then
+        return .MacOS
+    elsif @target_os() == "freebsd" then
+        return .FreeBSD
+    elsif @target_os() == "openbsd" then
+        return .OpenBSD
+    elsif @target_os() == "netbsd" then
+        return .NetBSD
+    elsif @target_os() == "dragonfly" then
+        return .DragonFlyBSD
+    else
+        @compile_error("Unsupported platform")
+    end
+end
+```
+
+---
+
+Part 14: Configuration (TOML Only)
+
+14.1 Project Configuration (maia.toml)
+
+```toml
+[project]
+name = "myproject"
+version = "0.1.0"
+authors = ["Purging Light Technologies"]
+license = "MIT"
+
+[project.dependencies]
+stdlib = { version = "^0.1.0" }
+
+[build]
+optimization = "debug"
+safety = "full"
+target = "x86_64-linux"
+
+[build.targets.linux]
+kernel_minimum = "6.12"
+architectures = ["x86_64", "arm64", "riscv64"]
+```
+
+14.2 Package Manifest (package.toml)
+
+```toml
+[package]
+name = "stdlib"
+version = "0.1.0"
+
+[package.dependencies]
+core = { version = "^0.1.0" }
+
+[package.target_dependencies.linux]
+epoll = { version = "^0.1.0" }
+io_uring = { version = "^0.1.0", optional = true }
+
+[package.target_dependencies.bsd]
+kqueue = { version = "^0.1.0" }
+```
+
+14.3 Build Configuration (.maia/build.toml)
+
+```toml
+[build]
+jobs = 8
+verbose = false
+color = true
+
+[build.cache]
+enabled = true
+directory = ".cache/build"
+compress = true
+```
+
+14.4 CI/CD Configuration (.maia/ci.toml)
+
+```toml
+[ci]
+enabled = true
+provider = "github-actions"
+
+[ci.matrix]
+os = ["ubuntu-24.04", "windows-10", "macos-14", "freebsd-14", "openbsd-7.5", "netbsd-10.1", "dragonflybsd-6.4"]
+arch = ["x86_64", "arm64", "riscv64"]
+
+[ci.cache]
+enabled = true
+paths = [".cache/build", "deps"]
+```
+
+14.5 Koda Shell Configuration (~/.kodarc.toml)
+
+```toml
+[shell]
+prompt = "┌─[${USER}@${HOST}]\\n└─> "
+history_size = 10000
+
+[shell.aliases]
+ll = "ls -la"
+gs = "git status"
+gd = "git diff"
+maia_build = "maia build --release"
+koda_run = "koda run"
+```
+
+---
+
+Part 15: Documentation (Markdown)
+
+15.1 Documentation Comments
+
+Documentation comments use /// syntax and support Markdown formatting.
+
+```pascal
+/// # Math Functions
+/// 
+/// This module provides basic mathematical operations.
+/// 
+/// ## Examples
+/// 
+/// ```pascal
+/// var result := Math.add(5, 3)
+/// writeln(result)  /* 8 */
+/// ```
+/// 
+/// @since 0.1.0
+module Math
+
+/// Adds two integers together.
+/// 
+/// @param a The first number
+/// @param b The second number
+/// @return The sum of a and b
+function add(a: int32, b: int32): int32
+```
+
+15.2 Documentation Tags
+
+Tag Description Example
+@param name description Function parameter @param x The X coordinate
+@return description Return value @return The computed result
+@example code Usage example @example var x := add(5,3)
+@see reference Cross reference @see subtract
+@deprecated reason Deprecation notice @deprecated Use newFunction instead
+@since version Version added @since 0.1.0
+
+15.3 Documentation Generation
+
+```bash
+maia docs --output=docs/
+```
+
+---
+
+Part 16: Compiler Implementation
+
+16.1 Self-Hosting Pipeline
+
+```yaml
+self_hosting_pipeline:
+  phase_0: "Zig → Maia (bootstrap compiler)"
+  phase_0_5: "Zig → Koda (bootstrap VM)"
+  phase_1: "Maia (bootstrap) → Maia (self-hosted)"
+  phase_1_5: "Maia (self-hosted) → Standard Library"
+  phase_2: "Maia (self-hosted) → Koda VM (rewrite)"
+  phase_3: "Koda (on Maia VM) → Koda Standard Library"
+
+final_state:
+  maia: "Compiles itself (no Zig)"
+  koda: "Runs on Maia VM (no Zig)"
+```
+
+16.2 Backends
+
+Architecture Status Output Format
+x86_64 ✅ ELF, Mach-O, PE
+ARM64 ✅ ELF, Mach-O, PE
+RISC-V ✅ ELF
+WebAssembly ✅ WASM
+
+16.3 Compilation Flags
+
+```bash
+maia build --target=x86_64-linux --release
+maia build --safety=full --optimize=aggressive
+maia build --emit-llvm --output=output.ll
+```
+
+---
+
+Part 17: Versioning
+
+17.1 Version Scheme: major.minor.development
+
+Stage Minor Development Example
+Pre-alpha 0 1-99 0.0.1
+Alpha 1 1-99 0.1.5
+Beta 2 1-99 0.2.3
+RC 3 1-99 0.3.2
+Stable 4+ 0 1.0.0
+Patch 4+ 1-99 1.1.5
+
+17.2 Compatibility Rules
+
+```toml
+[compatibility]
+same_major = "compatible"
+major_increase = "breaking"
+minor_increase = "new_features_backward_compatible"
+development_increase = "bug_fixes_only"
+```
+
+---
+
+Part 18: Tools
+
+18.1 Compiler Toolchain
+
+```bash
+maia build --release          # compile Maia code
+maia test --verbose           # run tests
+maia docs --output=docs/      # generate documentation
+maia fmt --check              # format code
+maia lint                     # lint code
+```
+
+18.2 Koda Tools
+
+```bash
+koda                          # REPL (interactive shell)
+koda script.koda              # run script
+koda run --web server.koda    # run web server
+pssh                          # POSIX shell (written in Koda)
+pkg install stdlib            # package manager
+```
+
+---
+
+Part 19: Complete Source Examples
+
+19.1 Maia Example
+
+```pascal
+/* math.maia
+   This module provides basic mathematical functions
+*/
+
+module Math
+
+/// Adds two integers together.
+/// @param a The first number
+/// @param b The second number
+/// @return The sum of a and b
+export function add(a: int32, b: int32): int32
+
+/// The mathematical constant Pi
+export const PI: f64 = 3.141592653589793
+
+/* Implementation */
+function add(a: int32, b: int32): int32
+begin
+    return a + b
+end
+
+/// Main entry point
+procedure main()
+begin
+    var sum := add(10, 20)
+    writeln("Sum: ", sum)
+end
+```
+
+19.2 Koda Example
+
+```koda
+/* webserver.koda - Simple web server */
+import Koda.Web
+
+/// Main web server application
+procedure main()
+begin
+    var app := Web.Server.create()
+    
+    app.get("/", |req| {
+        return "Hello, World!"
+    })
+    
+    app.get("/api/status", |req| {
+        return {
+            status = "ok",
+            version = "0.1.0",
+            timestamp = Time.now(),
+        }
+    })
+    
+    writeln("Server running on http://localhost:8080")
+    app.listen(8080)
+end
+```
+
+---
+
+Part 20: File Extensions
+
+```toml
+[maia]
+source = ".maia"
+module = ".maia"
+interface = ".mai"
+object = ".o"
+static_lib = ".a"
+shared_lib = [".so", ".dylib", ".dll"]
+
+[koda]
+script = ".koda"
+module = ".koda"
+build_script = "build.koda"
+
+[config]
+project = "maia.toml"
+package = "package.toml"
+build = ".maia/build.toml"
+repo = ".maia/repo.toml"
+ci = ".maia/ci.toml"
+koda_user = ".kodarc.toml"
+
+[documentation]
+main = "README.md"
+contributing = "CONTRIBUTING.md"
+changelog = "CHANGELOG.md"
+license = "LICENSE"
+```
+
+---
+
+Appendix A: Change Log
+
+Version Date Changes
+0.0.1 2026-04-14 Initial MaiaKoda specification
+0.0.2 2026-04-17 Added Tier 1 platform support; TOML-only configuration
+0.1.0 2026-05-24 Renamed to MK-Ultra; Complete modular architecture; Self-hosting pipeline
+
+---
+
+Appendix B: Document Information
+
+```toml
+[document]
+title = "MK-Ultra Language Specification"
+version = "0.1.0"
+status = "pre-alpha"
+date = "2026-05-24"
+
+[document.copyright]
+holder = "Purging Light Technologies"
+year = 2026
+license = "MIT"
+
+[document.format]
+configuration = "TOML"
+documentation = "GitHub Markdown"
+```
+
+---
+
+End of MK-Ultra Language Specification v0.1.0
