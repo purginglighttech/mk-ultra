@@ -1,0 +1,547 @@
+MaiaKoda → MK-Ultra: Language Rename Specification
+
+Document Information
+
+Property Value
+Language Name MK-Ultra
+Compiled Sub-language Maia (unchanged)
+Interpreted Sub-language Koda (unchanged)
+Specification Version 4.0
+Status Pre-alpha
+Date 2026-05-24
+
+---
+
+Part 1: Naming Convention
+
+```yaml
+# OLD NAME
+language: "MaiaKoda"
+
+# NEW NAME
+language: "MK-Ultra"
+
+# Components (unchanged)
+compiled_component: "Maia"
+interpreted_component: "Koda"
+```
+
+1.1 Directory Structure Update
+
+```toml
+# OLD
+project_root = "maiakoda/"
+spec_file = "maiakoda_spec.toml"
+build_dir = "build/maiakoda/"
+
+# NEW
+project_root = "mk-ultra/"
+spec_file = "mk_ultra_spec.toml"
+build_dir = "build/mk-ultra/"
+```
+
+1.2 Module Paths Update
+
+```toml
+# OLD module paths
+"bootstrap/src/lexer/token_types.zig"
+"compiler/src/lexer/token_types.maia"
+"koda-bootstrap/src/lexer/token_types.zig"
+"koda-vm/src/lexer/token_types.maia"
+
+# NEW module paths (same structure, different root)
+"mk-ultra/bootstrap/src/lexer/token_types.zig"
+"mk-ultra/compiler/src/lexer/token_types.maia"
+"mk-ultra/koda-bootstrap/src/lexer/token_types.zig"
+"mk-ultra/koda-vm/src/lexer/token_types.maia"
+```
+
+---
+
+Part 2: Complete Renamed Module Registry
+
+2.1 Phase 0 - Maia Bootstrap Compiler (Zig)
+
+```toml
+# modules/mk_ultra_phase_0.toml
+[phase_0]
+name = "Maia Bootstrap Compiler"
+language = "zig"
+total_modules = 48
+output = "mk-ultra/bootstrap/bin/maia"
+purpose = "TEMPORARY - bootstrap compiler for Maia"
+
+[phase_0.modules.lexer]
+"lexer/token_types" = { file = "mk-ultra/bootstrap/src/lexer/token_types.zig", lines = 80, depends_on = [] }
+"lexer/keywords" = { file = "mk-ultra/bootstrap/src/lexer/keywords.zig", lines = 60, depends_on = ["lexer/token_types"] }
+"lexer/operators" = { file = "mk-ultra/bootstrap/src/lexer/operators.zig", lines = 50, depends_on = ["lexer/token_types"] }
+"lexer/literals" = { file = "mk-ultra/bootstrap/src/lexer/literals.zig", lines = 70, depends_on = ["lexer/token_types"] }
+"lexer/comments" = { file = "mk-ultra/bootstrap/src/lexer/comments.zig", lines = 100, depends_on = ["lexer/token_types"] }
+"lexer/identifier" = { file = "mk-ultra/bootstrap/src/lexer/identifier.zig", lines = 60, depends_on = ["lexer/token_types", "lexer/keywords"] }
+"lexer/lib" = { file = "mk-ultra/bootstrap/src/lexer/lib.zig", lines = 80, depends_on = ["lexer/token_types", "lexer/keywords", "lexer/operators", "lexer/literals", "lexer/comments", "lexer/identifier"] }
+
+[phase_0.modules.parser]
+"parser/ast_nodes" = { file = "mk-ultra/bootstrap/src/parser/ast_nodes.zig", lines = 150, depends_on = ["lexer/lib"] }
+"parser/error_types" = { file = "mk-ultra/bootstrap/src/parser/error_types.zig", lines = 50, depends_on = [] }
+"parser/expr" = { file = "mk-ultra/bootstrap/src/parser/expr_parser.zig", lines = 120, depends_on = ["lexer/lib", "parser/ast_nodes", "parser/error_types"] }
+"parser/stmt" = { file = "mk-ultra/bootstrap/src/parser/stmt_parser.zig", lines = 100, depends_on = ["lexer/lib", "parser/ast_nodes", "parser/error_types", "parser/expr"] }
+"parser/decl" = { file = "mk-ultra/bootstrap/src/parser/decl_parser.zig", lines = 100, depends_on = ["lexer/lib", "parser/ast_nodes", "parser/error_types", "parser/stmt"] }
+"parser/lib" = { file = "mk-ultra/bootstrap/src/parser/lib.zig", lines = 80, depends_on = ["parser/ast_nodes", "parser/error_types", "parser/expr", "parser/stmt", "parser/decl"] }
+
+[phase_0.modules.sema]
+"sema/symbols" = { file = "mk-ultra/bootstrap/src/sema/symbols.zig", lines = 120, depends_on = ["parser/ast_nodes"] }
+"sema/types" = { file = "mk-ultra/bootstrap/src/sema/types.zig", lines = 100, depends_on = ["parser/ast_nodes"] }
+"sema/ownership" = { file = "mk-ultra/bootstrap/src/sema/ownership.zig", lines = 150, depends_on = ["sema/symbols", "sema/types"] }
+"sema/capabilities" = { file = "mk-ultra/bootstrap/src/sema/capabilities.zig", lines = 120, depends_on = ["sema/symbols", "sema/types"] }
+"sema/lifetimes" = { file = "mk-ultra/bootstrap/src/sema/lifetimes.zig", lines = 130, depends_on = ["sema/symbols", "sema/ownership"] }
+"sema/lib" = { file = "mk-ultra/bootstrap/src/sema/lib.zig", lines = 80, depends_on = ["sema/symbols", "sema/types", "sema/ownership", "sema/capabilities", "sema/lifetimes"] }
+
+[phase_0.modules.ir]
+"ir/instructions" = { file = "mk-ultra/bootstrap/src/ir/instructions.zig", lines = 120, depends_on = [] }
+"ir/types" = { file = "mk-ultra/bootstrap/src/ir/types.zig", lines = 80, depends_on = [] }
+"ir/builder" = { file = "mk-ultra/bootstrap/src/ir/builder.zig", lines = 100, depends_on = ["ir/instructions", "ir/types", "sema/lib"] }
+"ir/lib" = { file = "mk-ultra/bootstrap/src/ir/lib.zig", lines = 70, depends_on = ["ir/instructions", "ir/types", "ir/builder"] }
+
+[phase_0.modules.codegen_x86]
+"codegen/x86_64/registers" = { file = "mk-ultra/bootstrap/src/codegen/x86_64/registers.zig", lines = 60, depends_on = [] }
+"codegen/x86_64/instructions" = { file = "mk-ultra/bootstrap/src/codegen/x86_64/instructions.zig", lines = 100, depends_on = [] }
+"codegen/x86_64/calling" = { file = "mk-ultra/bootstrap/src/codegen/x86_64/calling_convention.zig", lines = 80, depends_on = ["codegen/x86_64/registers"] }
+"codegen/x86_64/selector" = { file = "mk-ultra/bootstrap/src/codegen/x86_64/instruction_selector.zig", lines = 120, depends_on = ["ir/lib", "codegen/x86_64/instructions", "codegen/x86_64/calling"] }
+"codegen/x86_64/emitter" = { file = "mk-ultra/bootstrap/src/codegen/x86_64/emitter.zig", lines = 100, depends_on = ["codegen/x86_64/selector"] }
+
+[phase_0.modules.codegen_arm]
+"codegen/arm64/registers" = { file = "mk-ultra/bootstrap/src/codegen/arm64/registers.zig", lines = 60, depends_on = [] }
+"codegen/arm64/instructions" = { file = "mk-ultra/bootstrap/src/codegen/arm64/instructions.zig", lines = 100, depends_on = [] }
+"codegen/arm64/selector" = { file = "mk-ultra/bootstrap/src/codegen/arm64/instruction_selector.zig", lines = 120, depends_on = ["ir/lib", "codegen/arm64/instructions", "codegen/arm64/registers"] }
+"codegen/arm64/emitter" = { file = "mk-ultra/bootstrap/src/codegen/arm64/emitter.zig", lines = 100, depends_on = ["codegen/arm64/selector"] }
+
+[phase_0.modules.codegen_riscv]
+"codegen/riscv64/registers" = { file = "mk-ultra/bootstrap/src/codegen/riscv64/registers.zig", lines = 60, depends_on = [] }
+"codegen/riscv64/instructions" = { file = "mk-ultra/bootstrap/src/codegen/riscv64/instructions.zig", lines = 100, depends_on = [] }
+"codegen/riscv64/selector" = { file = "mk-ultra/bootstrap/src/codegen/riscv64/instruction_selector.zig", lines = 120, depends_on = ["ir/lib", "codegen/riscv64/instructions", "codegen/riscv64/registers"] }
+"codegen/riscv64/emitter" = { file = "mk-ultra/bootstrap/src/codegen/riscv64/emitter.zig", lines = 100, depends_on = ["codegen/riscv64/selector"] }
+
+[phase_0.modules.codegen_wasm]
+"codegen/wasm32/instructions" = { file = "mk-ultra/bootstrap/src/codegen/wasm32/instructions.zig", lines = 100, depends_on = [] }
+"codegen/wasm32/emitter" = { file = "mk-ultra/bootstrap/src/codegen/wasm32/emitter.zig", lines = 100, depends_on = ["ir/lib", "codegen/wasm32/instructions"] }
+
+[phase_0.modules.assembler]
+"assembler/elf" = { file = "mk-ultra/bootstrap/src/assembler/elf.zig", lines = 150, depends_on = [] }
+"assembler/mach_o" = { file = "mk-ultra/bootstrap/src/assembler/mach_o.zig", lines = 130, depends_on = [] }
+"assembler/pe" = { file = "mk-ultra/bootstrap/src/assembler/pe.zig", lines = 140, depends_on = [] }
+"assembler/lib" = { file = "mk-ultra/bootstrap/src/assembler/lib.zig", lines = 100, depends_on = ["assembler/elf", "assembler/mach_o", "assembler/pe"] }
+
+[phase_0.modules.linker]
+"linker/symbols" = { file = "mk-ultra/bootstrap/src/linker/symbols.zig", lines = 80, depends_on = [] }
+"linker/relocation" = { file = "mk-ultra/bootstrap/src/linker/relocation.zig", lines = 100, depends_on = ["assembler/lib", "linker/symbols"] }
+"linker/layout" = { file = "mk-ultra/bootstrap/src/linker/layout.zig", lines = 80, depends_on = ["linker/symbols"] }
+"linker/lib" = { file = "mk-ultra/bootstrap/src/linker/lib.zig", lines = 80, depends_on = ["linker/symbols", "linker/relocation", "linker/layout"] }
+
+[phase_0.modules.main]
+"main" = { file = "mk-ultra/bootstrap/src/main.zig", lines = 100, depends_on = ["lexer/lib", "parser/lib", "sema/lib", "ir/lib", "codegen/x86_64/emitter", "codegen/arm64/emitter", "codegen/riscv64/emitter", "codegen/wasm32/emitter", "assembler/lib", "linker/lib"] }
+```
+
+2.2 Phase 0.5 - Koda Bootstrap VM (Zig)
+
+```toml
+# modules/mk_ultra_phase_0_5.toml
+[phase_0_5]
+name = "Koda Bootstrap VM"
+language = "zig"
+total_modules = 35
+output = "mk-ultra/koda-bootstrap/bin/koda"
+purpose = "TEMPORARY - will rewrite in Maia in Phase 2"
+
+[phase_0_5.modules.lexer]
+"koda_lexer/token_types" = { file = "mk-ultra/koda-bootstrap/src/lexer/token_types.zig", lines = 70, depends_on = [] }
+"koda_lexer/keywords" = { file = "mk-ultra/koda-bootstrap/src/lexer/keywords.zig", lines = 50, depends_on = ["koda_lexer/token_types"] }
+"koda_lexer/operators" = { file = "mk-ultra/koda-bootstrap/src/lexer/operators.zig", lines = 45, depends_on = ["koda_lexer/token_types"] }
+"koda_lexer/literals" = { file = "mk-ultra/koda-bootstrap/src/lexer/literals.zig", lines = 65, depends_on = ["koda_lexer/token_types"] }
+"koda_lexer/comments" = { file = "mk-ultra/koda-bootstrap/src/lexer/comments.zig", lines = 90, depends_on = ["koda_lexer/token_types"] }
+"koda_lexer/lib" = { file = "mk-ultra/koda-bootstrap/src/lexer/lib.zig", lines = 70, depends_on = ["koda_lexer/token_types", "koda_lexer/keywords", "koda_lexer/operators", "koda_lexer/literals", "koda_lexer/comments"] }
+
+[phase_0_5.modules.parser]
+"koda_parser/ast_nodes" = { file = "mk-ultra/koda-bootstrap/src/parser/ast_nodes.zig", lines = 120, depends_on = ["koda_lexer/lib"] }
+"koda_parser/expr" = { file = "mk-ultra/koda-bootstrap/src/parser/expr_parser.zig", lines = 100, depends_on = ["koda_lexer/lib", "koda_parser/ast_nodes"] }
+"koda_parser/stmt" = { file = "mk-ultra/koda-bootstrap/src/parser/stmt_parser.zig", lines = 90, depends_on = ["koda_lexer/lib", "koda_parser/ast_nodes", "koda_parser/expr"] }
+"koda_parser/lib" = { file = "mk-ultra/koda-bootstrap/src/parser/lib.zig", lines = 70, depends_on = ["koda_parser/ast_nodes", "koda_parser/expr", "koda_parser/stmt"] }
+
+[phase_0_5.modules.bytecode]
+"bytecode/instructions" = { file = "mk-ultra/koda-bootstrap/src/bytecode/instructions.zig", lines = 100, depends_on = [] }
+"bytecode/chunk" = { file = "mk-ultra/koda-bootstrap/src/bytecode/chunk.zig", lines = 80, depends_on = ["bytecode/instructions"] }
+"bytecode/lib" = { file = "mk-ultra/koda-bootstrap/src/bytecode/lib.zig", lines = 50, depends_on = ["bytecode/instructions", "bytecode/chunk"] }
+
+[phase_0_5.modules.compiler]
+"compiler/value" = { file = "mk-ultra/koda-bootstrap/src/compiler/value.zig", lines = 80, depends_on = ["bytecode/lib"] }
+"compiler/local" = { file = "mk-ultra/koda-bootstrap/src/compiler/local.zig", lines = 70, depends_on = ["compiler/value"] }
+"compiler/emit" = { file = "mk-ultra/koda-bootstrap/src/compiler/emit.zig", lines = 120, depends_on = ["koda_parser/lib", "bytecode/lib", "compiler/value", "compiler/local"] }
+"compiler/lib" = { file = "mk-ultra/koda-bootstrap/src/compiler/lib.zig", lines = 70, depends_on = ["compiler/emit"] }
+
+[phase_0_5.modules.vm]
+"vm/stack" = { file = "mk-ultra/koda-bootstrap/src/vm/stack.zig", lines = 80, depends_on = ["compiler/value"] }
+"vm/frame" = { file = "mk-ultra/koda-bootstrap/src/vm/frame.zig", lines = 70, depends_on = ["vm/stack"] }
+"vm/execute" = { file = "mk-ultra/koda-bootstrap/src/vm/execute.zig", lines = 150, depends_on = ["compiler/lib", "vm/stack", "vm/frame"] }
+"vm/call" = { file = "mk-ultra/koda-bootstrap/src/vm/call.zig", lines = 90, depends_on = ["vm/execute"] }
+"vm/lib" = { file = "mk-ultra/koda-bootstrap/src/vm/lib.zig", lines = 80, depends_on = ["vm/execute", "vm/call"] }
+
+[phase_0_5.modules.runtime]
+"runtime/builtins" = { file = "mk-ultra/koda-bootstrap/src/runtime/builtins.zig", lines = 100, depends_on = ["vm/lib"] }
+"runtime/io" = { file = "mk-ultra/koda-bootstrap/src/runtime/io.zig", lines = 80, depends_on = ["vm/lib"] }
+"runtime/string" = { file = "mk-ultra/koda-bootstrap/src/runtime/string.zig", lines = 90, depends_on = ["vm/lib"] }
+"runtime/array" = { file = "mk-ultra/koda-bootstrap/src/runtime/array.zig", lines = 80, depends_on = ["vm/lib"] }
+"runtime/table" = { file = "mk-ultra/koda-bootstrap/src/runtime/table.zig", lines = 100, depends_on = ["vm/lib"] }
+"runtime/lib" = { file = "mk-ultra/koda-bootstrap/src/runtime/lib.zig", lines = 80, depends_on = ["runtime/builtins", "runtime/io", "runtime/string", "runtime/array", "runtime/table"] }
+
+[phase_0_5.modules.repl]
+"repl/line_editor" = { file = "mk-ultra/koda-bootstrap/src/repl/line_editor.zig", lines = 100, depends_on = [] }
+"repl/history" = { file = "mk-ultra/koda-bootstrap/src/repl/history.zig", lines = 60, depends_on = [] }
+"repl/lib" = { file = "mk-ultra/koda-bootstrap/src/repl/lib.zig", lines = 80, depends_on = ["vm/lib", "runtime/lib", "repl/line_editor", "repl/history"] }
+```
+
+2.3 Phase 1 - Maia Self-Hosted Compiler (Maia)
+
+```toml
+# modules/mk_ultra_phase_1.toml
+[phase_1]
+name = "Maia Self-Hosted Compiler"
+language = "maia"
+total_modules = 48
+output = "mk-ultra/compiler/bin/maia"
+requires = "phase_0"
+purpose = "PERMANENT - Maia compiler written in Maia"
+
+# Translation mapping
+[phase_1.translation_map]
+# Phase 0 (Zig) → Phase 1 (Maia)
+"lexer/token_types" = { zig = "mk-ultra/bootstrap/src/lexer/token_types.zig", maia = "mk-ultra/compiler/src/lexer/token_types.maia", lines = 80 }
+"lexer/keywords" = { zig = "mk-ultra/bootstrap/src/lexer/keywords.zig", maia = "mk-ultra/compiler/src/lexer/keywords.maia", lines = 60 }
+"lexer/operators" = { zig = "mk-ultra/bootstrap/src/lexer/operators.zig", maia = "mk-ultra/compiler/src/lexer/operators.maia", lines = 50 }
+"lexer/literals" = { zig = "mk-ultra/bootstrap/src/lexer/literals.zig", maia = "mk-ultra/compiler/src/lexer/literals.maia", lines = 70 }
+"lexer/comments" = { zig = "mk-ultra/bootstrap/src/lexer/comments.zig", maia = "mk-ultra/compiler/src/lexer/comments.maia", lines = 100 }
+"lexer/identifier" = { zig = "mk-ultra/bootstrap/src/lexer/identifier.zig", maia = "mk-ultra/compiler/src/lexer/identifier.maia", lines = 60 }
+"lexer/lib" = { zig = "mk-ultra/bootstrap/src/lexer/lib.zig", maia = "mk-ultra/compiler/src/lexer/lib.maia", lines = 80 }
+
+[phase_1.modules.parser]
+"parser/ast_nodes" = { zig = "mk-ultra/bootstrap/src/parser/ast_nodes.zig", maia = "mk-ultra/compiler/src/parser/ast_nodes.maia", lines = 150 }
+"parser/error_types" = { zig = "mk-ultra/bootstrap/src/parser/error_types.zig", maia = "mk-ultra/compiler/src/parser/error_types.maia", lines = 50 }
+"parser/expr" = { zig = "mk-ultra/bootstrap/src/parser/expr_parser.zig", maia = "mk-ultra/compiler/src/parser/expr_parser.maia", lines = 120 }
+"parser/stmt" = { zig = "mk-ultra/bootstrap/src/parser/stmt_parser.zig", maia = "mk-ultra/compiler/src/parser/stmt_parser.maia", lines = 100 }
+"parser/decl" = { zig = "mk-ultra/bootstrap/src/parser/decl_parser.zig", maia = "mk-ultra/compiler/src/parser/decl_parser.maia", lines = 100 }
+"parser/lib" = { zig = "mk-ultra/bootstrap/src/parser/lib.zig", maia = "mk-ultra/compiler/src/parser/lib.maia", lines = 80 }
+
+[phase_1.modules.sema]
+"sema/symbols" = { zig = "mk-ultra/bootstrap/src/sema/symbols.zig", maia = "mk-ultra/compiler/src/sema/symbols.maia", lines = 120 }
+"sema/types" = { zig = "mk-ultra/bootstrap/src/sema/types.zig", maia = "mk-ultra/compiler/src/sema/types.maia", lines = 100 }
+"sema/ownership" = { zig = "mk-ultra/bootstrap/src/sema/ownership.zig", maia = "mk-ultra/compiler/src/sema/ownership.maia", lines = 150 }
+"sema/capabilities" = { zig = "mk-ultra/bootstrap/src/sema/capabilities.zig", maia = "mk-ultra/compiler/src/sema/capabilities.maia", lines = 120 }
+"sema/lifetimes" = { zig = "mk-ultra/bootstrap/src/sema/lifetimes.zig", maia = "mk-ultra/compiler/src/sema/lifetimes.maia", lines = 130 }
+"sema/lib" = { zig = "mk-ultra/bootstrap/src/sema/lib.zig", maia = "mk-ultra/compiler/src/sema/lib.maia", lines = 80 }
+
+[phase_1.modules.ir]
+"ir/instructions" = { zig = "mk-ultra/bootstrap/src/ir/instructions.zig", maia = "mk-ultra/compiler/src/ir/instructions.maia", lines = 120 }
+"ir/types" = { zig = "mk-ultra/bootstrap/src/ir/types.zig", maia = "mk-ultra/compiler/src/ir/types.maia", lines = 80 }
+"ir/builder" = { zig = "mk-ultra/bootstrap/src/ir/builder.zig", maia = "mk-ultra/compiler/src/ir/builder.maia", lines = 100 }
+"ir/lib" = { zig = "mk-ultra/bootstrap/src/ir/lib.zig", maia = "mk-ultra/compiler/src/ir/lib.maia", lines = 70 }
+
+[phase_1.modules.codegen_x86]
+"codegen/x86_64/registers" = { zig = "mk-ultra/bootstrap/src/codegen/x86_64/registers.zig", maia = "mk-ultra/compiler/src/codegen/x86_64/registers.maia", lines = 60 }
+"codegen/x86_64/instructions" = { zig = "mk-ultra/bootstrap/src/codegen/x86_64/instructions.zig", maia = "mk-ultra/compiler/src/codegen/x86_64/instructions.maia", lines = 100 }
+"codegen/x86_64/calling" = { zig = "mk-ultra/bootstrap/src/codegen/x86_64/calling_convention.zig", maia = "mk-ultra/compiler/src/codegen/x86_64/calling_convention.maia", lines = 80 }
+"codegen/x86_64/selector" = { zig = "mk-ultra/bootstrap/src/codegen/x86_64/instruction_selector.zig", maia = "mk-ultra/compiler/src/codegen/x86_64/instruction_selector.maia", lines = 120 }
+"codegen/x86_64/emitter" = { zig = "mk-ultra/bootstrap/src/codegen/x86_64/emitter.zig", maia = "mk-ultra/compiler/src/codegen/x86_64/emitter.maia", lines = 100 }
+
+[phase_1.modules.codegen_arm]
+"codegen/arm64/registers" = { zig = "mk-ultra/bootstrap/src/codegen/arm64/registers.zig", maia = "mk-ultra/compiler/src/codegen/arm64/registers.maia", lines = 60 }
+"codegen/arm64/instructions" = { zig = "mk-ultra/bootstrap/src/codegen/arm64/instructions.zig", maia = "mk-ultra/compiler/src/codegen/arm64/instructions.maia", lines = 100 }
+"codegen/arm64/selector" = { zig = "mk-ultra/bootstrap/src/codegen/arm64/instruction_selector.zig", maia = "mk-ultra/compiler/src/codegen/arm64/instruction_selector.maia", lines = 120 }
+"codegen/arm64/emitter" = { zig = "mk-ultra/bootstrap/src/codegen/arm64/emitter.zig", maia = "mk-ultra/compiler/src/codegen/arm64/emitter.maia", lines = 100 }
+
+[phase_1.modules.codegen_riscv]
+"codegen/riscv64/registers" = { zig = "mk-ultra/bootstrap/src/codegen/riscv64/registers.zig", maia = "mk-ultra/compiler/src/codegen/riscv64/registers.maia", lines = 60 }
+"codegen/riscv64/instructions" = { zig = "mk-ultra/bootstrap/src/codegen/riscv64/instructions.zig", maia = "mk-ultra/compiler/src/codegen/riscv64/instructions.maia", lines = 100 }
+"codegen/riscv64/selector" = { zig = "mk-ultra/bootstrap/src/codegen/riscv64/instruction_selector.zig", maia = "mk-ultra/compiler/src/codegen/riscv64/instruction_selector.maia", lines = 120 }
+"codegen/riscv64/emitter" = { zig = "mk-ultra/bootstrap/src/codegen/riscv64/emitter.zig", maia = "mk-ultra/compiler/src/codegen/riscv64/emitter.maia", lines = 100 }
+
+[phase_1.modules.codegen_wasm]
+"codegen/wasm32/instructions" = { zig = "mk-ultra/bootstrap/src/codegen/wasm32/instructions.zig", maia = "mk-ultra/compiler/src/codegen/wasm32/instructions.maia", lines = 100 }
+"codegen/wasm32/emitter" = { zig = "mk-ultra/bootstrap/src/codegen/wasm32/emitter.zig", maia = "mk-ultra/compiler/src/codegen/wasm32/emitter.maia", lines = 100 }
+
+[phase_1.modules.assembler]
+"assembler/elf" = { zig = "mk-ultra/bootstrap/src/assembler/elf.zig", maia = "mk-ultra/compiler/src/assembler/elf.maia", lines = 150 }
+"assembler/mach_o" = { zig = "mk-ultra/bootstrap/src/assembler/mach_o.zig", maia = "mk-ultra/compiler/src/assembler/mach_o.maia", lines = 130 }
+"assembler/pe" = { zig = "mk-ultra/bootstrap/src/assembler/pe.zig", maia = "mk-ultra/compiler/src/assembler/pe.maia", lines = 140 }
+"assembler/lib" = { zig = "mk-ultra/bootstrap/src/assembler/lib.zig", maia = "mk-ultra/compiler/src/assembler/lib.maia", lines = 100 }
+
+[phase_1.modules.linker]
+"linker/symbols" = { zig = "mk-ultra/bootstrap/src/linker/symbols.zig", maia = "mk-ultra/compiler/src/linker/symbols.maia", lines = 80 }
+"linker/relocation" = { zig = "mk-ultra/bootstrap/src/linker/relocation.zig", maia = "mk-ultra/compiler/src/linker/relocation.maia", lines = 100 }
+"linker/layout" = { zig = "mk-ultra/bootstrap/src/linker/layout.zig", maia = "mk-ultra/compiler/src/linker/layout.maia", lines = 80 }
+"linker/lib" = { zig = "mk-ultra/bootstrap/src/linker/lib.zig", maia = "mk-ultra/compiler/src/linker/lib.maia", lines = 80 }
+
+[phase_1.modules.main]
+"main" = { zig = "mk-ultra/bootstrap/src/main.zig", maia = "mk-ultra/compiler/src/main.maia", lines = 100 }
+
+[phase_1.bootstrap_process]
+step_1 = "Compile mk-ultra/compiler/src/main.maia with mk-ultra/bootstrap/bin/maia → compiler-stage1"
+step_2 = "Compile mk-ultra/compiler/src/main.maia with compiler-stage1 → compiler-stage2"
+step_3 = "Verify stage1 and stage2 are identical"
+step_4 = "Set compiler-stage2 as default maia compiler"
+```
+
+2.4 Phase 1.5 - Maia Standard Library (Maia)
+
+```toml
+# modules/mk_ultra_phase_1_5.toml
+[phase_1_5]
+name = "Maia Standard Library"
+language = "maia"
+total_modules = 50
+output = "mk-ultra/stdlib/"
+requires = "phase_1"
+purpose = "PERMANENT - Core library for Maia"
+
+[phase_1_5.modules.core]
+"core/prelude" = { file = "mk-ultra/stdlib/core/prelude.maia", lines = 60, depends_on = [] }
+"core/types" = { file = "mk-ultra/stdlib/core/types.maia", lines = 80, depends_on = ["core/prelude"] }
+"core/memory" = { file = "mk-ultra/stdlib/core/memory.maia", lines = 100, depends_on = ["core/types"] }
+"core/allocators" = { file = "mk-ultra/stdlib/core/allocators.maia", lines = 120, depends_on = ["core/memory"] }
+"core/arena" = { file = "mk-ultra/stdlib/core/arena.maia", lines = 80, depends_on = ["core/allocators"] }
+"core/pool" = { file = "mk-ultra/stdlib/core/pool.maia", lines = 80, depends_on = ["core/allocators"] }
+"core/option" = { file = "mk-ultra/stdlib/core/option.maia", lines = 70, depends_on = ["core/types"] }
+"core/result" = { file = "mk-ultra/stdlib/core/result.maia", lines = 70, depends_on = ["core/types"] }
+
+[phase_1_5.modules.collections]
+"collections/array" = { file = "mk-ultra/stdlib/collections/array.maia", lines = 100, depends_on = ["core/memory"] }
+"collections/slice" = { file = "mk-ultra/stdlib/collections/slice.maia", lines = 80, depends_on = ["core/memory"] }
+"collections/vector" = { file = "mk-ultra/stdlib/collections/vector.maia", lines = 120, depends_on = ["core/allocators", "collections/array"] }
+"collections/hashmap" = { file = "mk-ultra/stdlib/collections/hashmap.maia", lines = 150, depends_on = ["core/allocators", "core/option"] }
+"collections/hashset" = { file = "mk-ultra/stdlib/collections/hashset.maia", lines = 100, depends_on = ["collections/hashmap"] }
+"collections/string" = { file = "mk-ultra/stdlib/collections/string.maia", lines = 120, depends_on = ["core/allocators", "collections/vector"] }
+"collections/string_builder" = { file = "mk-ultra/stdlib/collections/string_builder.maia", lines = 80, depends_on = ["collections/string"] }
+
+[phase_1_5.modules.io]
+"io/file" = { file = "mk-ultra/stdlib/io/file.maia", lines = 100, depends_on = ["core/memory"] }
+"io/stream" = { file = "mk-ultra/stdlib/io/stream.maia", lines = 80, depends_on = ["io/file"] }
+"io/reader" = { file = "mk-ultra/stdlib/io/reader.maia", lines = 70, depends_on = ["io/stream"] }
+"io/writer" = { file = "mk-ultra/stdlib/io/writer.maia", lines = 70, depends_on = ["io/stream"] }
+"io/console" = { file = "mk-ultra/stdlib/io/console.maia", lines = 60, depends_on = ["io/writer"] }
+"io/fs" = { file = "mk-ultra/stdlib/io/fs.maia", lines = 100, depends_on = ["io/file"] }
+
+[phase_1_5.modules.concurrency]
+"concurrency/actor" = { file = "mk-ultra/stdlib/concurrency/actor.maia", lines = 120, depends_on = ["core/memory"] }
+"concurrency/channel" = { file = "mk-ultra/stdlib/concurrency/channel.maia", lines = 100, depends_on = ["core/memory", "collections/array"] }
+"concurrency/task" = { file = "mk-ultra/stdlib/concurrency/task.maia", lines = 80, depends_on = ["concurrency/actor"] }
+"concurrency/mutex" = { file = "mk-ultra/stdlib/concurrency/mutex.maia", lines = 60, depends_on = [] }
+"concurrency/atomic" = { file = "mk-ultra/stdlib/concurrency/atomic.maia", lines = 60, depends_on = [] }
+
+[phase_1_5.modules.math]
+"math/basic" = { file = "mk-ultra/stdlib/math/basic.maia", lines = 80, depends_on = [] }
+"math/trig" = { file = "mk-ultra/stdlib/math/trig.maia", lines = 100, depends_on = ["math/basic"] }
+"math/random" = { file = "mk-ultra/stdlib/math/random.maia", lines = 70, depends_on = [] }
+
+[phase_1_5.modules.posix]
+"posix/types" = { file = "mk-ultra/stdlib/posix/types.maia", lines = 60, depends_on = [] }
+"posix/unistd" = { file = "mk-ultra/stdlib/posix/unistd.maia", lines = 80, depends_on = ["posix/types"] }
+"posix/fcntl" = { file = "mk-ultra/stdlib/posix/fcntl.maia", lines = 70, depends_on = ["posix/types"] }
+"posix/stat" = { file = "mk-ultra/stdlib/posix/stat.maia", lines = 70, depends_on = ["posix/types"] }
+"posix/socket" = { file = "mk-ultra/stdlib/posix/socket.maia", lines = 100, depends_on = ["posix/types"] }
+"posix/time" = { file = "mk-ultra/stdlib/posix/time.maia", lines = 60, depends_on = ["posix/types"] }
+
+[phase_1_5.modules.testing]
+"testing/assert" = { file = "mk-ultra/stdlib/testing/assert.maia", lines = 60, depends_on = [] }
+"testing/bench" = { file = "mk-ultra/stdlib/testing/bench.maia", lines = 80, depends_on = ["core/time"] }
+"testing/expect" = { file = "mk-ultra/stdlib/testing/expect.maia", lines = 70, depends_on = ["testing/assert"] }
+```
+
+2.5 Phase 2 - Koda VM Rewrite (Maia)
+
+```toml
+# modules/mk_ultra_phase_2.toml
+[phase_2]
+name = "Koda VM Rewrite in Maia"
+language = "maia"
+total_modules = 35
+output = "mk-ultra/koda-vm/bin/koda"
+requires = "phase_1, phase_0_5"
+purpose = "PERMANENT - Koda VM written in Maia (no Zig)"
+
+[phase_2.translation_map]
+# Phase 0.5 (Zig) → Phase 2 (Maia)
+"koda_lexer/token_types" = { zig = "mk-ultra/koda-bootstrap/src/lexer/token_types.zig", maia = "mk-ultra/koda-vm/src/lexer/token_types.maia", lines = 70 }
+"koda_lexer/keywords" = { zig = "mk-ultra/koda-bootstrap/src/lexer/keywords.zig", maia = "mk-ultra/koda-vm/src/lexer/keywords.maia", lines = 50 }
+"koda_lexer/operators" = { zig = "mk-ultra/koda-bootstrap/src/lexer/operators.zig", maia = "mk-ultra/koda-vm/src/lexer/operators.maia", lines = 45 }
+"koda_lexer/literals" = { zig = "mk-ultra/koda-bootstrap/src/lexer/literals.zig", maia = "mk-ultra/koda-vm/src/lexer/literals.maia", lines = 65 }
+"koda_lexer/comments" = { zig = "mk-ultra/koda-bootstrap/src/lexer/comments.zig", maia = "mk-ultra/koda-vm/src/lexer/comments.maia", lines = 90 }
+"koda_lexer/lib" = { zig = "mk-ultra/koda-bootstrap/src/lexer/lib.zig", maia = "mk-ultra/koda-vm/src/lexer/lib.maia", lines = 70 }
+
+[phase_2.modules.parser]
+"koda_parser/ast_nodes" = { zig = "mk-ultra/koda-bootstrap/src/parser/ast_nodes.zig", maia = "mk-ultra/koda-vm/src/parser/ast_nodes.maia", lines = 120 }
+"koda_parser/expr" = { zig = "mk-ultra/koda-bootstrap/src/parser/expr_parser.zig", maia = "mk-ultra/koda-vm/src/parser/expr_parser.maia", lines = 100 }
+"koda_parser/stmt" = { zig = "mk-ultra/koda-bootstrap/src/parser/stmt_parser.zig", maia = "mk-ultra/koda-vm/src/parser/stmt_parser.maia", lines = 90 }
+"koda_parser/lib" = { zig = "mk-ultra/koda-bootstrap/src/parser/lib.zig", maia = "mk-ultra/koda-vm/src/parser/lib.maia", lines = 70 }
+
+[phase_2.modules.bytecode]
+"bytecode/instructions" = { zig = "mk-ultra/koda-bootstrap/src/bytecode/instructions.zig", maia = "mk-ultra/koda-vm/src/bytecode/instructions.maia", lines = 100 }
+"bytecode/chunk" = { zig = "mk-ultra/koda-bootstrap/src/bytecode/chunk.zig", maia = "mk-ultra/koda-vm/src/bytecode/chunk.maia", lines = 80 }
+"bytecode/lib" = { zig = "mk-ultra/koda-bootstrap/src/bytecode/lib.zig", maia = "mk-ultra/koda-vm/src/bytecode/lib.maia", lines = 50 }
+
+[phase_2.modules.compiler]
+"compiler/value" = { zig = "mk-ultra/koda-bootstrap/src/compiler/value.zig", maia = "mk-ultra/koda-vm/src/compiler/value.maia", lines = 80 }
+"compiler/local" = { zig = "mk-ultra/koda-bootstrap/src/compiler/local.zig", maia = "mk-ultra/koda-vm/src/compiler/local.maia", lines = 70 }
+"compiler/emit" = { zig = "mk-ultra/koda-bootstrap/src/compiler/emit.zig", maia = "mk-ultra/koda-vm/src/compiler/emit.maia", lines = 120 }
+"compiler/lib" = { zig = "mk-ultra/koda-bootstrap/src/compiler/lib.zig", maia = "mk-ultra/koda-vm/src/compiler/lib.maia", lines = 70 }
+
+[phase_2.modules.vm]
+"vm/stack" = { zig = "mk-ultra/koda-bootstrap/src/vm/stack.zig", maia = "mk-ultra/koda-vm/src/vm/stack.maia", lines = 80 }
+"vm/frame" = { zig = "mk-ultra/koda-bootstrap/src/vm/frame.zig", maia = "mk-ultra/koda-vm/src/vm/frame.maia", lines = 70 }
+"vm/execute" = { zig = "mk-ultra/koda-bootstrap/src/vm/execute.zig", maia = "mk-ultra/koda-vm/src/vm/execute.maia", lines = 150 }
+"vm/call" = { zig = "mk-ultra/koda-bootstrap/src/vm/call.zig", maia = "mk-ultra/koda-vm/src/vm/call.maia", lines = 90 }
+"vm/lib" = { zig = "mk-ultra/koda-bootstrap/src/vm/lib.zig", maia = "mk-ultra/koda-vm/src/vm/lib.maia", lines = 80 }
+
+[phase_2.modules.runtime]
+"runtime/builtins" = { zig = "mk-ultra/koda-bootstrap/src/runtime/builtins.zig", maia = "mk-ultra/koda-vm/src/runtime/builtins.maia", lines = 100 }
+"runtime/io" = { zig = "mk-ultra/koda-bootstrap/src/runtime/io.zig", maia = "mk-ultra/koda-vm/src/runtime/io.maia", lines = 80 }
+"runtime/string" = { zig = "mk-ultra/koda-bootstrap/src/runtime/string.zig", maia = "mk-ultra/koda-vm/src/runtime/string.maia", lines = 90 }
+"runtime/array" = { zig = "mk-ultra/koda-bootstrap/src/runtime/array.zig", maia = "mk-ultra/koda-vm/src/runtime/array.maia", lines = 80 }
+"runtime/table" = { zig = "mk-ultra/koda-bootstrap/src/runtime/table.zig", maia = "mk-ultra/koda-vm/src/runtime/table.maia", lines = 100 }
+"runtime/lib" = { zig = "mk-ultra/koda-bootstrap/src/runtime/lib.zig", maia = "mk-ultra/koda-vm/src/runtime/lib.maia", lines = 80 }
+
+[phase_2.modules.repl]
+"repl/line_editor" = { zig = "mk-ultra/koda-bootstrap/src/repl/line_editor.zig", maia = "mk-ultra/koda-vm/src/repl/line_editor.maia", lines = 100 }
+"repl/history" = { zig = "mk-ultra/koda-bootstrap/src/repl/history.zig", maia = "mk-ultra/koda-vm/src/repl/history.maia", lines = 60 }
+"repl/lib" = { zig = "mk-ultra/koda-bootstrap/src/repl/lib.zig", maia = "mk-ultra/koda-vm/src/repl/lib.maia", lines = 80 }
+
+[phase_2.verification]
+same_bytecode_format = true
+all_original_tests_pass = true
+no_zig_dependencies = true
+```
+
+2.6 Phase 3 - Koda Standard Library (Koda)
+
+```toml
+# modules/mk_ultra_phase_3.toml
+[phase_3]
+name = "Koda Standard Library"
+language = "koda"
+total_modules = 34
+output = "mk-ultra/koda-stdlib/"
+requires = "phase_2"
+purpose = "PERMANENT - Koda libraries written in Koda"
+
+[phase_3.modules.core]
+"core/prelude" = { file = "mk-ultra/koda-stdlib/core/prelude.koda", lines = 50, depends_on = [] }
+"core/types" = { file = "mk-ultra/koda-stdlib/core/types.koda", lines = 60, depends_on = ["core/prelude"] }
+"core/constants" = { file = "mk-ultra/koda-stdlib/core/constants.koda", lines = 40, depends_on = ["core/prelude"] }
+
+[phase_3.modules.shell]
+"shell/command" = { file = "mk-ultra/koda-stdlib/shell/command.koda", lines = 100, depends_on = ["core/types"] }
+"shell/pipeline" = { file = "mk-ultra/koda-stdlib/shell/pipeline.koda", lines = 80, depends_on = ["shell/command"] }
+"shell/job" = { file = "mk-ultra/koda-stdlib/shell/job.koda", lines = 90, depends_on = ["shell/command"] }
+"shell/completion" = { file = "mk-ultra/koda-stdlib/shell/completion.koda", lines = 70, depends_on = ["shell/command"] }
+"bin/pssh" = { file = "mk-ultra/koda-stdlib/bin/pssh.koda", lines = 150, depends_on = ["shell/command", "shell/pipeline", "shell/job"] }
+
+[phase_3.modules.web]
+"web/server" = { file = "mk-ultra/koda-stdlib/web/server.koda", lines = 120, depends_on = ["core/types", "core/constants"] }
+"web/router" = { file = "mk-ultra/koda-stdlib/web/router.koda", lines = 100, depends_on = ["web/server"] }
+"web/middleware" = { file = "mk-ultra/koda-stdlib/web/middleware.koda", lines = 80, depends_on = ["web/server"] }
+"web/websocket" = { file = "mk-ultra/koda-stdlib/web/websocket.koda", lines = 100, depends_on = ["web/server"] }
+"web/template" = { file = "mk-ultra/koda-stdlib/web/template.koda", lines = 90, depends_on = ["core/string"] }
+"web/session" = { file = "mk-ultra/koda-stdlib/web/session.koda", lines = 80, depends_on = ["web/server"] }
+"web/auth" = { file = "mk-ultra/koda-stdlib/web/auth.koda", lines = 100, depends_on = ["web/server", "core/string"] }
+
+[phase_3.modules.vcs]
+"vcs/git" = { file = "mk-ultra/koda-stdlib/vcs/git.koda", lines = 120, depends_on = ["shell/command"] }
+"vcs/hg" = { file = "mk-ultra/koda-stdlib/vcs/hg.koda", lines = 100, depends_on = ["shell/command"] }
+"vcs/svn" = { file = "mk-ultra/koda-stdlib/vcs/svn.koda", lines = 100, depends_on = ["shell/command"] }
+"vcs/repo" = { file = "mk-ultra/koda-stdlib/vcs/repo.koda", lines = 80, depends_on = ["vcs/git", "vcs/hg", "vcs/svn"] }
+
+[phase_3.modules.build]
+"build/task" = { file = "mk-ultra/koda-stdlib/build/task.koda", lines = 80, depends_on = ["shell/command"] }
+"build/exec" = { file = "mk-ultra/koda-stdlib/build/exec.koda", lines = 60, depends_on = ["build/task"] }
+"build/parallel" = { file = "mk-ultra/koda-stdlib/build/parallel.koda", lines = 80, depends_on = ["build/task"] }
+"build/cache" = { file = "mk-ultra/koda-stdlib/build/cache.koda", lines = 70, depends_on = ["core/fs"] }
+"build/container" = { file = "mk-ultra/koda-stdlib/build/container.koda", lines = 80, depends_on = ["build/exec"] }
+"build/matrix" = { file = "mk-ultra/koda-stdlib/build/matrix.koda", lines = 90, depends_on = ["build/task", "build/parallel"] }
+
+[phase_3.modules.package]
+"package/manager" = { file = "mk-ultra/koda-stdlib/package/manager.koda", lines = 120, depends_on = ["core/http", "core/fs", "vcs/git"] }
+"package/resolver" = { file = "mk-ultra/koda-stdlib/package/resolver.koda", lines = 100, depends_on = ["package/manager"] }
+"package/lock" = { file = "mk-ultra/koda-stdlib/package/lock.koda", lines = 70, depends_on = ["core/toml"] }
+"bin/pkg" = { file = "mk-ultra/koda-stdlib/bin/pkg.koda", lines = 100, depends_on = ["package/manager", "package/resolver"] }
+
+[phase_3.modules.template]
+"template/engine" = { file = "mk-ultra/koda-stdlib/template/engine.koda", lines = 100, depends_on = ["core/string"] }
+"template/parser" = { file = "mk-ultra/koda-stdlib/template/parser.koda", lines = 90, depends_on = ["template/engine"] }
+"template/filters" = { file = "mk-ultra/koda-stdlib/template/filters.koda", lines = 80, depends_on = ["template/engine"] }
+
+[phase_3.modules.async]
+"async/task" = { file = "mk-ultra/koda-stdlib/async/task.koda", lines = 80, depends_on = ["core/concurrency"] }
+"async/channel" = { file = "mk-ultra/koda-stdlib/async/channel.koda", lines = 70, depends_on = ["async/task"] }
+"async/stream" = { file = "mk-ultra/koda-stdlib/async/stream.koda", lines = 80, depends_on = ["async/task"] }
+```
+
+---
+
+Part 3: Quick Reference - What Changed
+
+```yaml
+changes:
+  language_name:
+    old: "MaiaKoda"
+    new: "MK-Ultra"
+  
+  unchanged:
+    compiled_name: "Maia"
+    interpreted_name: "Koda"
+  
+  directory_renames:
+    old_root: "maiakoda/"
+    new_root: "mk-ultra/"
+  
+  spec_file_renames:
+    old_spec: "maiakoda_spec.toml"
+    new_spec: "mk_ultra_spec.toml"
+  
+  module_file_renames:
+    old_pattern: "maiakoda/**/*.{zig,maia,koda}"
+    new_pattern: "mk-ultra/**/*.{zig,maia,koda}"
+```
+
+---
+
+Part 4: Build Prompt for DeepSeek (Updated)
+
+```bash
+# One-liner to build with renamed spec
+ollama run deepseek-coder:6.7b << EOF
+$(cat mk_ultra_spec)
+
+Build: phase_0/modules/lexer/token_types
+Output ONLY the Zig code. No explanations.
+EOF
+```
+
+---
+
+Part 5: Verification
+
+```yaml
+verification:
+  language_name: "MK-Ultra"
+  compiled_name: "Maia" 
+  interpreted_name: "Koda"
+  
+  file_exists:
+    - "mk_ultra_spec"
+    - "modules/mk_ultra_phase_0.toml"
+    - "modules/mk_ultra_phase_0_5.toml"
+    - "modules/mk_ultra_phase_1.toml"
+    - "modules/mk_ultra_phase_1_5.toml"
+    - "modules/mk_ultra_phase_2.toml"
+    - "modules/mk_ultra_phase_3.toml"
+```
+
+---
+
+End of MK-Ultra Language Rename Specification v4.0
